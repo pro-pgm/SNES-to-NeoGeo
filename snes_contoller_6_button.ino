@@ -48,7 +48,7 @@ Jamma 1P  -   Jamma 2P  ->  DB15 Pin  ->  Arduino
 25 (D)        AC (D)        4 (D)         D11
   Extra
 26 (E)        AC (E)        10 (E)        D12
-27 (F)        AE (F)        2 (F)         D13
+27 (F)        AE (F)        2 (F)         D17
 */
 
 #define PIN_SELECT  2
@@ -63,9 +63,17 @@ Jamma 1P  -   Jamma 2P  ->  DB15 Pin  ->  Arduino
 #define PIN_BUT4    11
 //Extra button
 #define PIN_BUT5    12
-#define PIN_BUT6    13 
+#define PIN_BUT6    17 // D17 -> A3 pin on arduino nano
 
-#define PIN_LED      17 // D17 -> A3 pin on arduino nano
+#define PIN_LED     13 // D13 -> built-in LED on arduino nano
+
+#define BUT_SELECT  2
+#define BUT_START   3
+#define BUT_LS      10
+
+// 8BitDo SNES receivers may power off if Start is held for several seconds.
+// Mirror SNES L to Neo Geo/JAMMA Start so long-press reset still works.
+#define EIGHTBITDO_START_WORKAROUND 1
 
 int buttons_state[12];  // B,Y,Sel,Start,U,D,L,R,A,X,L,R
       
@@ -117,12 +125,22 @@ void loop ()
                 pinMode(output_pins[i], OUTPUT);
             }
             else
-                pinMode(output_pins[i], INPUT);            
+            {
+                pinMode(output_pins[i], INPUT);
+            }
         }
     }
 
+#if EIGHTBITDO_START_WORKAROUND
+    if (!buttons_state[BUT_LS] || !buttons_state[BUT_START])
+    {
+        digitalWrite(PIN_START, LOW);
+        pinMode(PIN_START, OUTPUT);
+    }
+#endif
+
     // Output select/coin button to built-in LED
-    if (!buttons_state[2])
+    if (!buttons_state[BUT_SELECT])
         digitalWrite(PIN_LED, HIGH);
     else
         digitalWrite(PIN_LED, LOW);
